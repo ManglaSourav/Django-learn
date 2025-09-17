@@ -26,6 +26,7 @@ class UserRegistrationView(generics.CreateAPIView):
     User registration endpoint.
     """
     queryset = User.objects.all()
+    # print(queryset)
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
@@ -33,13 +34,13 @@ class UserRegistrationView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        
+
         # Create user profile
         UserProfile.objects.create(user=user)
-        
+
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-        
+
         return Response({
             'user': UserSerializer(user).data,
             'tokens': {
@@ -56,12 +57,14 @@ class UserLoginView(TokenObtainPairView):
     serializer_class = UserLoginSerializer
 
     def post(self, request, *args, **kwargs):
+        # print("request.data dataaaa ", request.data)
         serializer = self.get_serializer(data=request.data)
+        # print("serializer serializer serializer ", serializer)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        
         refresh = RefreshToken.for_user(user)
-        
+        # print("refresh refresh refresh ", refresh, user, serializer.validated_data)
+        # print("UserSerializer UserSerializer UserSerializer ", refresh.access_token)
         return Response({
             'user': UserSerializer(user).data,
             'tokens': {
@@ -101,7 +104,8 @@ class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             user = request.user
             user.set_password(serializer.validated_data['new_password'])
@@ -121,13 +125,13 @@ class PasswordResetView(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             user = User.objects.get(email=email)
-            
+
             # Generate reset token (in production, use a more secure method)
             reset_token = get_random_string(32)
             user.reset_token = reset_token
             user.reset_token_expires = timezone.now() + timedelta(hours=1)
             user.save()
-            
+
             # Send email (in production, use Celery for async email sending)
             send_mail(
                 'Password Reset Request',
@@ -136,7 +140,7 @@ class PasswordResetView(APIView):
                 [email],
                 fail_silently=False,
             )
-            
+
             return Response({'message': 'Password reset email sent.'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

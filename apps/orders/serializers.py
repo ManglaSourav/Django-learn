@@ -12,7 +12,8 @@ class OrderItemSerializer(TimeStampedSerializer):
     product = ProductListSerializer(read_only=True)
     product_variant = ProductVariantSerializer(read_only=True)
     product_id = serializers.IntegerField(write_only=True)
-    product_variant_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    product_variant_id = serializers.IntegerField(
+        write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = OrderItem
@@ -20,7 +21,8 @@ class OrderItemSerializer(TimeStampedSerializer):
             'id', 'product', 'product_id', 'product_variant', 'product_variant_id',
             'quantity', 'unit_price', 'total_price', 'created_at', 'updated_at'
         )
-        read_only_fields = ('id', 'unit_price', 'total_price', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'unit_price', 'total_price',
+                            'created_at', 'updated_at')
 
 
 class OrderSerializer(TimeStampedSerializer):
@@ -80,20 +82,22 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         user = self.context['request'].user
-        
+
         with transaction.atomic():
             # Calculate totals
             subtotal = 0
             for item_data in items_data:
                 product_id = item_data['product_id']
                 quantity = item_data['quantity']
-                
+
                 from apps.products.models import Product, ProductVariant
                 try:
-                    product = Product.objects.get(id=product_id, is_active=True, is_deleted=False)
+                    product = Product.objects.get(
+                        id=product_id, is_active=True, is_deleted=False)
                 except Product.DoesNotExist:
-                    raise serializers.ValidationError(f"Product with id {product_id} not found.")
-                
+                    raise serializers.ValidationError(
+                        f"Product with id {product_id} not found.")
+
                 # Get unit price
                 if 'product_variant_id' in item_data and item_data['product_variant_id']:
                     try:
@@ -107,20 +111,21 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                         raise serializers.ValidationError(f"Product variant not found.")
                 else:
                     unit_price = product.price
-                
+
                 item_total = quantity * unit_price
                 subtotal += item_total
-                
+
                 # Check stock
                 if product.stock_quantity < quantity:
-                    raise serializers.ValidationError(f"Insufficient stock for {product.name}.")
-            
+                    raise serializers.ValidationError(
+                        f"Insufficient stock for {product.name}.")
+
             # Calculate other amounts (simplified)
             tax_amount = subtotal * 0.1  # 10% tax
             shipping_amount = 10.00  # Fixed shipping
             discount_amount = 0.00
             total_amount = subtotal + tax_amount + shipping_amount - discount_amount
-            
+
             # Create order
             order = Order.objects.create(
                 user=user,
@@ -131,14 +136,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 total_amount=total_amount,
                 **validated_data
             )
-            
+
             # Create order items
             for item_data in items_data:
                 product_id = item_data['product_id']
                 quantity = item_data['quantity']
-                
+
                 product = Product.objects.get(id=product_id)
-                
+
                 if 'product_variant_id' in item_data and item_data['product_variant_id']:
                     variant = ProductVariant.objects.get(
                         id=item_data['product_variant_id'],
@@ -147,19 +152,20 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                     unit_price = variant.price
                 else:
                     unit_price = product.price
-                
+
                 OrderItem.objects.create(
                     order=order,
                     product=product,
-                    product_variant=variant if 'product_variant_id' in item_data and item_data['product_variant_id'] else None,
+                    product_variant=variant if 'product_variant_id' in item_data and item_data[
+                        'product_variant_id'] else None,
                     quantity=quantity,
                     unit_price=unit_price
                 )
-                
+
                 # Update stock
                 product.stock_quantity -= quantity
                 product.save()
-            
+
             return order
 
 
@@ -185,7 +191,8 @@ class CartItemSerializer(TimeStampedSerializer):
     product = ProductListSerializer(read_only=True)
     product_variant = ProductVariantSerializer(read_only=True)
     product_id = serializers.IntegerField(write_only=True)
-    product_variant_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    product_variant_id = serializers.IntegerField(
+        write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = CartItem
@@ -193,7 +200,8 @@ class CartItemSerializer(TimeStampedSerializer):
             'id', 'product', 'product_id', 'product_variant', 'product_variant_id',
             'quantity', 'unit_price', 'total_price', 'created_at', 'updated_at'
         )
-        read_only_fields = ('id', 'unit_price', 'total_price', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'unit_price', 'total_price',
+                            'created_at', 'updated_at')
 
 
 class CartSerializer(TimeStampedSerializer):
@@ -223,26 +231,27 @@ class CartItemCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         product_id = attrs.get('product_id')
         quantity = attrs.get('quantity')
-        
+
         from apps.products.models import Product, ProductVariant
         try:
-            product = Product.objects.get(id=product_id, is_active=True, is_deleted=False)
+            product = Product.objects.get(
+                id=product_id, is_active=True, is_deleted=False)
         except Product.DoesNotExist:
             raise serializers.ValidationError("Product not found.")
-        
+
         if product.stock_quantity < quantity:
             raise serializers.ValidationError("Insufficient stock.")
-        
+
         return attrs
 
     def create(self, validated_data):
         cart = self.context['cart']
         product_id = validated_data['product_id']
         quantity = validated_data['quantity']
-        
+
         from apps.products.models import Product, ProductVariant
         product = Product.objects.get(id=product_id)
-        
+
         # Get unit price
         if 'product_variant_id' in validated_data and validated_data['product_variant_id']:
             variant = ProductVariant.objects.get(
@@ -253,20 +262,21 @@ class CartItemCreateSerializer(serializers.ModelSerializer):
             unit_price = variant.price
         else:
             unit_price = product.price
-        
+
         # Check if item already exists in cart
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
             product=product,
-            product_variant=variant if 'product_variant_id' in validated_data and validated_data['product_variant_id'] else None,
+            product_variant=variant if 'product_variant_id' in validated_data and validated_data[
+                'product_variant_id'] else None,
             defaults={
                 'quantity': quantity,
                 'unit_price': unit_price
             }
         )
-        
+
         if not created:
             cart_item.quantity += quantity
             cart_item.save()
-        
+
         return cart_item

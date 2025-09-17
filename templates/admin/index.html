@@ -1,0 +1,294 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: all 0.3s ease;
+        border-left: 5px solid var(--primary-color);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.users {
+        border-left-color: #3498db;
+    }
+
+    .stat-card.products {
+        border-left-color: #e74c3c;
+    }
+
+    .stat-card.orders {
+        border-left-color: #f39c12;
+    }
+
+    .stat-card.revenue {
+        border-left-color: #27ae60;
+    }
+
+    .stat-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.8;
+    }
+
+    .stat-number {
+        font-size: 36px;
+        font-weight: bold;
+        color: var(--dark-color);
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .quick-actions {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-actions h2 {
+        margin-top: 0;
+        color: var(--dark-color);
+        font-size: 20px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-color);
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .action-item {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .action-item:hover {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    .action-item a {
+        color: inherit;
+        text-decoration: none;
+        display: block;
+    }
+
+    .action-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .action-label {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .recent-activity {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .recent-activity h2 {
+        margin-top: 0;
+        color: var(--dark-color);
+        font-size: 20px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-color);
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--light-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 18px;
+        color: var(--primary-color);
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 5px;
+    }
+
+    .activity-time {
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+
+    .welcome-message {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .welcome-message h1 {
+        margin: 0 0 10px 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .welcome-message p {
+        margin: 0;
+        font-size: 16px;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-message">
+    <h1>Welcome to Django REST API Admin</h1>
+    <p>Manage your e-commerce platform with ease and efficiency</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card users">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">{{ user_count|default:"0" }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card products">
+        <div class="stat-icon">📦</div>
+        <div class="stat-number">{{ product_count|default:"0" }}</div>
+        <div class="stat-label">Products</div>
+    </div>
+    <div class="stat-card orders">
+        <div class="stat-icon">🛒</div>
+        <div class="stat-number">{{ order_count|default:"0" }}</div>
+        <div class="stat-label">Orders</div>
+    </div>
+    <div class="stat-card revenue">
+        <div class="stat-icon">💰</div>
+        <div class="stat-number">${{ revenue|default:"0" }}</div>
+        <div class="stat-label">Revenue</div>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="action-grid">
+        <div class="action-item">
+            <a href="{% url 'admin:users_user_add' %}">
+                <span class="action-icon">👤</span>
+                <span class="action-label">Add User</span>
+            </a>
+        </div>
+        <div class="action-item">
+            <a href="{% url 'admin:products_product_add' %}">
+                <span class="action-icon">📦</span>
+                <span class="action-label">Add Product</span>
+            </a>
+        </div>
+        <div class="action-item">
+            <a href="{% url 'admin:products_category_add' %}">
+                <span class="action-icon">📂</span>
+                <span class="action-label">Add Category</span>
+            </a>
+        </div>
+        <div class="action-item">
+            <a href="{% url 'admin:orders_order_changelist' %}">
+                <span class="action-icon">🛒</span>
+                <span class="action-label">View Orders</span>
+            </a>
+        </div>
+        <div class="action-item">
+            <a href="/api/docs/" target="_blank">
+                <span class="action-icon">📚</span>
+                <span class="action-label">API Docs</span>
+            </a>
+        </div>
+        <div class="action-item">
+            <a href="/health/" target="_blank">
+                <span class="action-icon">❤️</span>
+                <span class="action-label">Health Check</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="recent-activity">
+    <h2>Recent Activity</h2>
+    {% if recent_orders %}
+    {% for order in recent_orders %}
+    <div class="activity-item">
+        <div class="activity-icon">🛒</div>
+        <div class="activity-content">
+            <div class="activity-title">New order: {{ order.order_number }}</div>
+            <div class="activity-time">{{ order.created_at|timesince }} ago</div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="activity-item">
+        <div class="activity-icon">ℹ️</div>
+        <div class="activity-content">
+            <div class="activity-title">No recent activity</div>
+            <div class="activity-time">Check back later</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{{ block.super }}
+{% endblock %}

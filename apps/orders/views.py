@@ -53,7 +53,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         if instance.can_be_cancelled():
             instance.status = 'cancelled'
             instance.save()
-            
+
             # Create status history entry
             OrderStatusHistory.objects.create(
                 order=instance,
@@ -135,7 +135,7 @@ def add_to_cart(request):
     """
     cart, created = Cart.objects.get_or_create(user=request.user)
     serializer = CartItemCreateSerializer(data=request.data, context={'cart': cart})
-    
+
     if serializer.is_valid():
         cart_item = serializer.save()
         return Response(CartItemSerializer(cart_item).data, status=status.HTTP_201_CREATED)
@@ -162,17 +162,17 @@ def update_cart_item_quantity(request, item_id):
     """
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
-    
+
     quantity = request.data.get('quantity')
     if not quantity or quantity < 1:
         return Response({'error': 'Invalid quantity.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     if cart_item.product.stock_quantity < quantity:
         return Response({'error': 'Insufficient stock.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     cart_item.quantity = quantity
     cart_item.save()
-    
+
     return Response(CartItemSerializer(cart_item).data)
 
 
@@ -194,10 +194,10 @@ def checkout(request):
     Convert cart to order.
     """
     cart, created = Cart.objects.get_or_create(user=request.user)
-    
+
     if not cart.items.exists():
         return Response({'error': 'Cart is empty.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     # Create order from cart
     order_data = {
         'billing_first_name': request.data.get('billing_first_name', ''),
@@ -222,7 +222,7 @@ def checkout(request):
         'notes': request.data.get('notes', ''),
         'items': []
     }
-    
+
     # Convert cart items to order items
     for cart_item in cart.items.all():
         order_item_data = {
@@ -232,16 +232,16 @@ def checkout(request):
         if cart_item.product_variant:
             order_item_data['product_variant_id'] = cart_item.product_variant.id
         order_data['items'].append(order_item_data)
-    
+
     serializer = OrderCreateSerializer(data=order_data, context={'request': request})
-    
+
     if serializer.is_valid():
         with transaction.atomic():
             order = serializer.save()
-            
+
             # Clear cart after successful order creation
             cart.items.all().delete()
-            
+
             # Create initial status history
             OrderStatusHistory.objects.create(
                 order=order,
@@ -249,7 +249,7 @@ def checkout(request):
                 notes='Order created',
                 changed_by=request.user
             )
-            
+
             return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

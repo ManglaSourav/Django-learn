@@ -33,6 +33,8 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 
+# Admin configuration will be imported in admin.py
+
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
@@ -137,6 +139,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
+
+# Authentication URLs
+LOGIN_URL = '/admin/login/'
+LOGOUT_URL = '/admin/logout/'
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/admin/'
 
 # Django REST Framework
 REST_FRAMEWORK = {
