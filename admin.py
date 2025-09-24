@@ -1,11 +1,24 @@
-from apps.orders.admin import OrderAdmin, OrderItemAdmin, OrderStatusHistoryAdmin, CartAdmin, CartItemAdmin
-from apps.products.admin import CategoryAdmin, ProductAdmin, ProductImageAdmin, ProductVariantAdmin, ProductReviewAdmin
-from apps.users.admin import UserAdmin, UserProfileAdmin
+from django.apps import apps
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.apps import apps
+from django.db.models import F, Sum
 from django.shortcuts import render
-from django.db.models import Sum, F
+
+from apps.orders.admin import (
+    CartAdmin,
+    CartItemAdmin,
+    OrderAdmin,
+    OrderItemAdmin,
+    OrderStatusHistoryAdmin,
+)
+from apps.products.admin import (
+    CategoryAdmin,
+    ProductAdmin,
+    ProductImageAdmin,
+    ProductReviewAdmin,
+    ProductVariantAdmin,
+)
+from apps.users.admin import UserAdmin, UserProfileAdmin
 
 # Get the custom user model
 User = get_user_model()
@@ -17,17 +30,17 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 # Get models from apps
-UserProfile = apps.get_model('users', 'UserProfile')
-Category = apps.get_model('products', 'Category')
-Product = apps.get_model('products', 'Product')
-ProductImage = apps.get_model('products', 'ProductImage')
-ProductVariant = apps.get_model('products', 'ProductVariant')
-ProductReview = apps.get_model('products', 'ProductReview')
-Order = apps.get_model('orders', 'Order')
-OrderItem = apps.get_model('orders', 'OrderItem')
-OrderStatusHistory = apps.get_model('orders', 'OrderStatusHistory')
-Cart = apps.get_model('orders', 'Cart')
-CartItem = apps.get_model('orders', 'CartItem')
+UserProfile = apps.get_model("users", "UserProfile")
+Category = apps.get_model("products", "Category")
+Product = apps.get_model("products", "Product")
+ProductImage = apps.get_model("products", "ProductImage")
+ProductVariant = apps.get_model("products", "ProductVariant")
+ProductReview = apps.get_model("products", "ProductReview")
+Order = apps.get_model("orders", "Order")
+OrderItem = apps.get_model("orders", "OrderItem")
+OrderStatusHistory = apps.get_model("orders", "OrderStatusHistory")
+Cart = apps.get_model("orders", "Cart")
+CartItem = apps.get_model("orders", "CartItem")
 
 # Register all models (only if not already registered)
 try:
@@ -99,8 +112,8 @@ def custom_admin_index(request, extra_context=None):
     Custom admin index with real statistics.
     """
     # Import models here to avoid circular imports
-    from apps.products.models import Product, Category
     from apps.orders.models import Order, OrderItem
+    from apps.products.models import Category, Product
 
     # Get statistics
     user_count = User.objects.count()
@@ -109,36 +122,38 @@ def custom_admin_index(request, extra_context=None):
     order_count = Order.objects.count()
 
     # Calculate revenue
-    revenue = Order.objects.filter(
-        payment_status='paid'
-    ).aggregate(
-        total=Sum('total_amount')
-    )['total'] or 0
+    revenue = (
+        Order.objects.filter(payment_status="paid").aggregate(
+            total=Sum("total_amount")
+        )["total"]
+        or 0
+    )
 
     # Recent orders
-    recent_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
+    recent_orders = Order.objects.select_related("user").order_by("-created_at")[:5]
 
     # Low stock products
     low_stock_products = Product.objects.filter(
-        is_active=True,
-        stock_quantity__lte=F('low_stock_threshold')
+        is_active=True, stock_quantity__lte=F("low_stock_threshold")
     )[:5]
 
     # Recent users
-    recent_users = User.objects.order_by('-date_joined')[:5]
+    recent_users = User.objects.order_by("-date_joined")[:5]
 
     # Prepare extra context with our data
     extra_context = extra_context or {}
-    extra_context.update({
-        'user_count': user_count,
-        'product_count': product_count,
-        'category_count': category_count,
-        'order_count': order_count,
-        'revenue': revenue,
-        'recent_orders': recent_orders,
-        'low_stock_products': low_stock_products,
-        'recent_users': recent_users,
-    })
+    extra_context.update(
+        {
+            "user_count": user_count,
+            "product_count": product_count,
+            "category_count": category_count,
+            "order_count": order_count,
+            "revenue": revenue,
+            "recent_orders": recent_orders,
+            "low_stock_products": low_stock_products,
+            "recent_users": recent_users,
+        }
+    )
 
     # Call the original index method with our extra context
     return original_index(request, extra_context)

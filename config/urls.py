@@ -1,37 +1,45 @@
 """
 URL configuration for production-ready backend system.
 """
-from django.contrib import admin
-from django.urls import path, include
+from django_prometheus import exports
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from django_prometheus import exports
+from django.urls import include, path
 
 urlpatterns = [
     # Admin
-    path('admin/', admin.site.urls),
-    
+    path("admin/", admin.site.urls),
     # Authentication URLs
-    path('admin/logout/', auth_views.LogoutView.as_view(next_page='/admin/'), name='admin_logout'),
-
+    path(
+        "admin/logout/",
+        auth_views.LogoutView.as_view(next_page="/admin/"),
+        name="admin_logout",
+    ),
     # API Documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Health Check
-    path('health/', include('health_check.urls')),
-
+    path("health/", include("health_check.urls")),
     # Prometheus metrics
-    path('metrics/', exports.ExportToDjangoView, name='prometheus-django-metrics'),
-
+    path("metrics/", exports.ExportToDjangoView, name="prometheus-django-metrics"),
     # API endpoints
-    path('api/v1/auth/', include('apps.users.urls')),
-    path('api/v1/products/', include('apps.products.urls')),
-    path('api/v1/orders/', include('apps.orders.urls')),
-    path('api/v1/core/', include('apps.core.urls')),
+    path("api/v1/auth/", include("apps.users.urls")),
+    path("api/v1/products/", include("apps.products.urls")),
+    path("api/v1/orders/", include("apps.orders.urls")),
+    path("api/v1/core/", include("apps.core.urls")),
 ]
 
 # Serve media files in development
@@ -40,8 +48,9 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
     # Debug toolbar
-    if 'debug_toolbar' in settings.INSTALLED_APPS:
+    if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
+
         urlpatterns = [
-            path('__debug__/', include(debug_toolbar.urls)),
+            path("__debug__/", include(debug_toolbar.urls)),
         ] + urlpatterns

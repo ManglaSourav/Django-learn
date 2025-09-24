@@ -1,8 +1,10 @@
 import pytest
-from django.test import Client
+
 from django.contrib.auth import get_user_model
-from apps.products.models import Category, Product
+from django.test import Client
+
 from apps.orders.models import Cart
+from apps.products.models import Category, Product
 
 User = get_user_model()
 
@@ -17,11 +19,11 @@ def client():
 def user():
     """Create a test user."""
     return User.objects.create_user(
-        username='testuser',
-        email='test@example.com',
-        password='testpass123',
-        first_name='Test',
-        last_name='User'
+        username="testuser",
+        email="test@example.com",
+        password="testpass123",
+        first_name="Test",
+        last_name="User",
     )
 
 
@@ -29,9 +31,7 @@ def user():
 def admin_user():
     """Create an admin user."""
     return User.objects.create_superuser(
-        username='admin',
-        email='admin@example.com',
-        password='adminpass123'
+        username="admin", email="admin@example.com", password="adminpass123"
     )
 
 
@@ -39,8 +39,7 @@ def admin_user():
 def category():
     """Create a test category."""
     return Category.objects.create(
-        name='Test Category',
-        description='Test category description'
+        name="Test Category", description="Test category description"
     )
 
 
@@ -48,13 +47,13 @@ def category():
 def product(category):
     """Create a test product."""
     return Product.objects.create(
-        name='Test Product',
-        description='Test product description',
-        short_description='Short description',
-        sku='TEST-001',
+        name="Test Product",
+        description="Test product description",
+        short_description="Short description",
+        sku="TEST-001",
         price=99.99,
         category=category,
-        stock_quantity=100
+        stock_quantity=100,
     )
 
 

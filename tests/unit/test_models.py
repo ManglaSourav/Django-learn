@@ -1,14 +1,22 @@
 import pytest
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+
+from apps.orders.models import Cart, CartItem, Order, OrderItem
+from apps.products.models import (
+    Category,
+    Product,
+    ProductImage,
+    ProductReview,
+    ProductVariant,
+)
 from apps.users.models import User, UserProfile
-from apps.products.models import Category, Product, ProductImage, ProductVariant, ProductReview
-from apps.orders.models import Order, OrderItem, Cart, CartItem
 
 
 class TestUserModel:
     """Test User model."""
-    
+
     def test_user_creation(self):
         """Test user creation."""
         user = User.objects.create_user(
@@ -56,7 +64,7 @@ class TestUserModel:
 
 class TestUserProfileModel:
     """Test UserProfile model."""
-    
+
     def test_profile_creation(self, user):
         """Test profile creation."""
         profile = UserProfile.objects.create(
@@ -76,7 +84,7 @@ class TestUserProfileModel:
 
 class TestCategoryModel:
     """Test Category model."""
-    
+
     def test_category_creation(self):
         """Test category creation."""
         category = Category.objects.create(
@@ -108,7 +116,7 @@ class TestCategoryModel:
 
 class TestProductModel:
     """Test Product model."""
-    
+
     def test_product_creation(self, category):
         """Test product creation."""
         product = Product.objects.create(
@@ -172,7 +180,7 @@ class TestProductModel:
 
 class TestOrderModel:
     """Test Order model."""
-    
+
     def test_order_creation(self, user):
         """Test order creation."""
         order = Order.objects.create(
@@ -260,7 +268,7 @@ class TestOrderModel:
 
 class TestCartModel:
     """Test Cart model."""
-    
+
     def test_cart_creation(self, user):
         """Test cart creation."""
         cart = Cart.objects.create(user=user)
